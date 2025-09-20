@@ -3,6 +3,10 @@ import { VlyToolbar } from "../vly-toolbar-readonly.tsx";
 import { InstrumentationProvider } from "@/instrumentation.tsx";
 import AuthPage from "@/pages/Auth.tsx";
 import Dashboard from "@/pages/Dashboard.tsx";
+import Create from "@/pages/Create.tsx";
+import Plans from "@/pages/Plans.tsx";
+import Profile from "@/pages/Profile.tsx";
+import Redeem from "@/pages/Redeem.tsx";
 import { ConvexAuthProvider } from "@convex-dev/auth/react";
 import { ConvexReactClient } from "convex/react";
 import { StrictMode, useEffect } from "react";
@@ -49,6 +53,10 @@ createRoot(document.getElementById("root")!).render(
             <Route path="/" element={<Landing />} />
             <Route path="/auth" element={<AuthPage redirectAfterAuth="/dashboard" />} />
             <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/create" element={<Create />} />
+            <Route path="/plans" element={<Plans />} />
+            <Route path="/rewards" element={<Redeem />} />
+            <Route path="/profile/:userId?" element={<Profile />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

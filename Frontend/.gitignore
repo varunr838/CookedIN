@@ -22,24 +22,3 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
-
-# Dependencies
-/node_modules
-
-# Environment Variables
-# Never commit this file! It contains secrets.
-.env.local
-.env
-
-# Build output
-/dist
-/build
-
-# Log files
-*.log
-
-# IDE and OS files
-.vscode/
-.idea/
-.DS_Store
-Thumbs.db

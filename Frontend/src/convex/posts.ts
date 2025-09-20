@@ -5,9 +5,19 @@ import { getCurrentUser } from "./users";
 export const createPost = mutation({
   args: {
     title: v.string(),
-    ingredients: v.array(v.string()),
+    ingredients: v.array(v.object({
+      name: v.string(),
+      grams: v.optional(v.number()),
+      quantity: v.optional(v.number()),
+    })),
     caption: v.string(),
     mediaFiles: v.array(v.string()),
+    flairs: v.object({
+      cuisine: v.string(),
+      foodType: v.string(),
+      taste: v.string(),
+      method: v.string(),
+    }),
   },
   handler: async (ctx, args) => {
     const user = await getCurrentUser(ctx);
@@ -15,11 +25,25 @@ export const createPost = mutation({
       throw new Error("Must be authenticated to create a post");
     }
 
+    // Validate ingredients - each must have exactly one of grams or quantity
+    for (const ingredient of args.ingredients) {
+      const hasGrams = ingredient.grams !== undefined && ingredient.grams !== null;
+      const hasQuantity = ingredient.quantity !== undefined && ingredient.quantity !== null;
+      
+      if (hasGrams && hasQuantity) {
+        throw new Error("Ingredient cannot have both grams and quantity");
+      }
+      if (!hasGrams && !hasQuantity) {
+        throw new Error("Ingredient must have either grams or quantity");
+      }
+    }
+
     return await ctx.db.insert("posts", {
       title: args.title,
       ingredients: args.ingredients,
       caption: args.caption,
       mediaFiles: args.mediaFiles,
+      flairs: args.flairs,
       authorId: user._id,
       authorName: user.name || "Anonymous Chef",
       authorImage: user.image,
@@ -34,6 +58,17 @@ export const getAllPosts = query({
   args: {},
   handler: async (ctx) => {
     return await ctx.db.query("posts").order("desc").collect();
+  },
+});
+
+export const getPostsByUser = query({
+  args: { userId: v.id("users") },
+  handler: async (ctx, args) => {
+    return await ctx.db
+      .query("posts")
+      .withIndex("by_author", (q) => q.eq("authorId", args.userId))
+      .order("desc")
+      .collect();
   },
 });
 

@@ -30,14 +30,32 @@ const schema = defineSchema(
       isAnonymous: v.optional(v.boolean()), // is the user anonymous. do not remove
 
       role: v.optional(roleValidator), // role of the user. do not remove
+      bio: v.optional(v.string()),
+      honorPoints: v.optional(v.number()),
+      redemptionHistory: v.optional(v.array(v.object({
+        itemId: v.id("rewards"),
+        name: v.string(),
+        cost: v.number(),
+        redeemedAt: v.number(),
+      }))),
     }).index("email", ["email"]), // index for the email. do not remove or modify
 
     // Recipe posts table
     posts: defineTable({
       title: v.string(),
-      ingredients: v.array(v.string()),
+      ingredients: v.array(v.object({
+        name: v.string(),
+        grams: v.optional(v.number()),
+        quantity: v.optional(v.number()),
+      })),
       caption: v.string(),
       mediaFiles: v.array(v.string()), // URLs to stored files
+      flairs: v.object({
+        cuisine: v.string(),
+        foodType: v.string(),
+        taste: v.string(),
+        method: v.string(),
+      }),
       authorId: v.id("users"),
       authorName: v.string(),
       authorImage: v.optional(v.string()),
@@ -46,14 +64,19 @@ const schema = defineSchema(
       comments: v.number(),
     }).index("by_author", ["authorId"]),
 
-    // Comments table
+    // Comments table with threading support
     comments: defineTable({
       postId: v.id("posts"),
       authorId: v.id("users"),
       authorName: v.string(),
       authorImage: v.optional(v.string()),
       content: v.string(),
-    }).index("by_post", ["postId"]),
+      parentCommentId: v.optional(v.id("comments")),
+      pinnedAI: v.optional(v.boolean()),
+      aiAnalysis: v.optional(v.string()),
+    })
+      .index("by_post", ["postId"])
+      .index("by_post_parent", ["postId", "parentCommentId"]),
 
     // User interactions table
     interactions: defineTable({
@@ -61,6 +84,23 @@ const schema = defineSchema(
       postId: v.id("posts"),
       type: v.union(v.literal("approve"), v.literal("disapprove")),
     }).index("by_user_post", ["userId", "postId"]),
+
+    // Rewards store
+    rewards: defineTable({
+      name: v.string(),
+      image: v.string(),
+      cost: v.number(),
+      active: v.boolean(),
+    }).index("by_active", ["active"]),
+
+    // Daily personalized plans
+    plans: defineTable({
+      userId: v.id("users"),
+      day: v.string(), // YYYY-MM-DD format
+      title: v.string(),
+      content: v.string(),
+      image: v.optional(v.string()),
+    }).index("by_user_and_day", ["userId", "day"]),
   },
   {
     schemaValidation: false,
