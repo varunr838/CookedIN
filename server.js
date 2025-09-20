@@ -2,6 +2,7 @@
 const express = require('express');
 const dotenv = require('dotenv');
 const cors = require('cors');
+const path = require('path');
 const connectDB = require('./config/db');
 
 // Load environment variables
@@ -11,6 +12,8 @@ dotenv.config();
 connectDB();
 
 const app = express();
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
 
 // Enable CORS
 app.use(cors());

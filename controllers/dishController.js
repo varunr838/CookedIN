@@ -35,7 +35,27 @@ exports.getDish = async (req, res, next) => {
 // @access  Public (in a real app, this would be private)
 exports.createDish = async (req, res, next) => {
     try {
-        const dish = await Dish.create(req.body);
+        const dishData = { ...req.body };
+
+        // Since we use FormData, arrays/objects are sent as strings. We need to parse them.
+        if (dishData.tags) {
+            dishData.tags = JSON.parse(dishData.tags);
+        }
+         if (dishData.ingredients) {
+            dishData.ingredients = JSON.parse(dishData.ingredients);
+        }
+
+        // Check for uploaded files and add their paths to dishData
+        if (req.files) {
+            if (req.files.photos) {
+                dishData.photos = req.files.photos.map(file => `/uploads/${file.filename}`);
+            }
+            if (req.files.videos) {
+                dishData.videos = req.files.videos.map(file => `/uploads/${file.filename}`);
+            }
+        }
+
+        const dish = await Dish.create(dishData);
         res.status(201).json({ success: true, data: dish });
     } catch (err) {
         // Handle validation errors
@@ -108,3 +128,4 @@ exports.deleteDish = async (req, res, next) => {
         res.status(500).json({ success: false, error: 'Server Error' });
     }
 };
+

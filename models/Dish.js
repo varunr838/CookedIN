@@ -32,8 +32,11 @@ const DishSchema = new mongoose.Schema({
     },
     photos: {
         type: [String], // Array of image URLs
-        required: false,
-        default: ['https://placehold.co/600x400/EEE/31343C?text=Dish+Image']
+        required: false
+    },
+    videos: {
+        type: [String], // Array of video URLs
+        required: false
     },
     ingredients: {
         type: [IngredientSchema],
@@ -60,3 +63,4 @@ const DishSchema = new mongoose.Schema({
 });
 
 module.exports = mongoose.model('Dish', DishSchema);
+
