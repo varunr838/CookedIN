@@ -29,6 +29,9 @@ app.get('/', (req, res) => {
 // Mount routers
 app.use('/api/dishes', require('./routes/dishes'));
 
+// ADD THIS LINE TO PLUG IN YOUR NUTRITION ROUTE
+app.use('/api/nutrition', require('./routes/nutrition'));
+
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {

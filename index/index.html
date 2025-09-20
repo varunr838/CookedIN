@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Healthy Dishes Tester</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        button { transition: all 0.2s ease-in-out; }
+        summary {
+            cursor: pointer;
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            background-color: #2563eb;
+            color: white;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            transition: background-color 0.2s;
+        }
+        summary:hover { background-color: #1d4ed8; }
+        video { max-height: 300px; background-color: #000; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800">
+
+    <div class="container mx-auto p-4 md:p-8">
+        <header class="text-center mb-8">
+            <h1 class="text-4xl font-bold text-gray-900">Healthy Dishes Feed</h1>
+            <p class="text-gray-600 mt-2">A simple UI to test the backend API with file uploads.</p>
+        </header>
+
+        <div class="bg-white p-6 rounded-lg shadow-md mb-8">
+            <h2 class="text-2xl font-bold mb-4 text-gray-800">Nutrition Calculator</h2>
+            <form id="nutrition-form" class="space-y-4">
+                <div>
+                    <label for="nutrition-ingredients" class="block text-sm font-medium text-gray-700">Ingredients (one per line)</label>
+                    <textarea id="nutrition-ingredients" name="ingredients" rows="4" placeholder="e.g., 100g chicken breast&#10;1 cup rice" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 border"></textarea>
+                </div>
+                <button type="submit" class="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                    Analyze Nutrition
+                </button>
+            </form>
+            <div id="nutrition-result" class="mt-4 p-4 bg-gray-50 rounded-md hidden"></div>
+            <div id="nutrition-error" class="hidden mt-4 p-3 bg-red-100 text-red-700 rounded-md"></div>
+        </div>
+
+        <div class="bg-white p-6 rounded-lg shadow-md mb-8">
+            <details>
+                <summary class="focus:outline-none">Create a New Dish Post</summary>
+                <form id="create-dish-form" class="mt-6 space-y-4">
+                    <div id="form-error" class="hidden p-3 bg-red-100 text-red-700 rounded-md"></div>
+                    <div>
+                        <label for="title" class="block text-sm font-medium text-gray-700">Title</label>
+                        <input type="text" id="title" name="title" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 border">
+                    </div>
+                    <div>
+                        <label for="description" class="block text-sm font-medium text-gray-700">Description</label>
+                        <textarea id="description" name="description" rows="3" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 border"></textarea>
+                    </div>
+                    <div>
+                        <label for="tags" class="block text-sm font-medium text-gray-700">Tags (comma-separated)</label>
+                        <input type="text" id="tags" name="tags" placeholder="e.g., Veg, Spicy, Indian" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 border">
+                    </div>
+                    <div>
+                        <label for="photos" class="block text-sm font-medium text-gray-700">Photos (up to 5)</label>
+                        <input type="file" id="photos" name="photos" multiple accept="image/*" class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                    </div>
+                    <div>
+                        <label for="videos" class="block text-sm font-medium text-gray-700">Videos (up to 2, max 10 sec)</label>
+                        <input type="file" id="videos" name="videos" multiple accept="video/*" class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-violet-50 file:text-violet-700 hover:file:bg-violet-100">
+                    </div>
+                    <div>
+                        <label for="ingredients" class="block text-sm font-medium text-gray-700">Ingredients (name: quantity, comma-separated)</label>
+                        <textarea id="ingredients" name="ingredients" rows="4" placeholder="e.g., Chicken Breast: 2 large, Olive Oil: 2 tbsp" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 border"></textarea>
+                    </div>
+                    <button type="submit" class="w-full bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                        Post Dish
+                    </button>
+                </form>
+            </details>
+        </div>
+
+        <h2 class="text-2xl font-semibold mb-4 text-center">Latest Dishes</h2>
+        <div id="dish-feed" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+    </div>
+    
+    <div id="confirmation-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center hidden">
+        <div class="relative mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+            <div class="mt-3 text-center">
+                <h3 class="text-lg leading-6 font-medium text-gray-900">Confirm Deletion</h3>
+                <div class="mt-2 px-7 py-3">
+                    <p class="text-sm text-gray-500" id="modal-body">Are you sure you want to delete this dish?</p>
+                </div>
+                <div class="items-center px-4 py-3">
+                    <button id="modal-confirm-btn" class="px-4 py-2 bg-red-600 text-white text-base font-medium rounded-md w-auto shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-300">Delete</button>
+                    <button id="modal-cancel-btn" class="px-4 py-2 bg-gray-200 text-gray-900 text-base font-medium rounded-md w-auto ml-2 shadow-sm hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-300">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:5000';
+        const dishFeed = document.getElementById('dish-feed');
+        const createDishForm = document.getElementById('create-dish-form');
+        const formErrorDiv = document.getElementById('form-error');
+
+        // --- Nutrition Calculator Logic ---
+        const nutritionForm = document.getElementById('nutrition-form');
+        const nutritionResultDiv = document.getElementById('nutrition-result');
+        const nutritionErrorDiv = document.getElementById('nutrition-error');
+
+        nutritionForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            nutritionResultDiv.classList.add('hidden');
+            nutritionErrorDiv.classList.add('hidden');
+            const ingredientsText = document.getElementById('nutrition-ingredients').value;
+            const ingredients = ingredientsText.split('\n').filter(line => line.trim() !== '');
+            try {
+                const response = await fetch(`${API_URL}/api/nutrition/analyze`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ ingredients }),
+                });
+                const result = await response.json();
+                if (!result.success) throw new Error(result.error || 'Failed to analyze nutrition');
+                const nutritionData = result.data;
+                nutritionResultDiv.innerHTML = `
+                    <h3 class="font-bold text-lg mb-2">Detailed Nutritional Information</h3>
+                    <div class="grid grid-cols-2 gap-x-8 gap-y-2 text-sm">
+                        <div><strong>Calories:</strong> ${nutritionData.calories} kcal</div>
+                        <div><strong>Protein:</strong> ${nutritionData.protein_g} g</div>
+                        <div><strong>Carbohydrates:</strong> ${nutritionData.carbs_g} g</div>
+                        <div><strong>Fat:</strong> ${nutritionData.fat_g} g</div>
+                        <div><strong>Fiber:</strong> ${nutritionData.fiber_g} g</div>
+                        <div><strong>Sugar:</strong> ${nutritionData.sugar_g} g</div>
+                        <div><strong>Cholesterol:</strong> ${nutritionData.cholesterol_mg} mg</div>
+                        <div><strong>Sodium:</strong> ${nutritionData.sodium_mg} mg</div>
+                        <div><strong>Potassium:</strong> ${nutritionData.potassium_mg} mg</div>
+                        <div><strong>Calcium:</strong> ${nutritionData.calcium_mg} mg</div>
+                        <div><strong>Iron:</strong> ${nutritionData.iron_mg} mg</div>
+                        <div><strong>Magnesium:</strong> ${nutritionData.magnesium_mg} mg</div>
+                        <div><strong>Vitamin C:</strong> ${nutritionData.vitamin_c_mg} mg</div>
+                        <div><strong>Vitamin D:</strong> ${nutritionData.vitamin_d_mcg} µg</div>
+                    </div>`;
+                nutritionResultDiv.classList.remove('hidden');
+            } catch (error) {
+                console.error('Error analyzing nutrition:', error);
+                nutritionErrorDiv.textContent = `Error: ${error.message}`;
+                nutritionErrorDiv.classList.remove('hidden');
+            }
+        });
+
+        // --- Dish Feature Logic ---
+        const renderDishes = (dishes) => {
+            dishFeed.innerHTML = '';
+            if (!dishes || dishes.length === 0) {
+                dishFeed.innerHTML = `<p class="text-gray-500 col-span-full text-center">No dishes posted yet. Be the first!</p>`;
+                return;
+            }
+            dishes.forEach(dish => {
+                const dishCard = document.createElement('div');
+                dishCard.className = 'bg-white rounded-lg shadow-md overflow-hidden flex flex-col';
+                let mediaHTML = '';
+                if (dish.photos && dish.photos.length > 0 && dish.photos[0]) {
+                    mediaHTML += `<img src="${API_URL}${dish.photos[0]}" alt="${dish.title}" class="w-full h-48 object-cover" onerror="this.onerror=null;this.src='https://placehold.co/600x400/EEE/31343C?text=Image+Not+Found';">`;
+                } else {
+                    mediaHTML += `<img src="https://placehold.co/600x400/EEE/31343C?text=No+Image" alt="${dish.title}" class="w-full h-48 object-cover">`;
+                }
+                if (dish.videos && dish.videos.length > 0 && dish.videos[0]) {
+                    mediaHTML += `<div class="p-2"><video controls class="w-full rounded" src="${API_URL}${dish.videos[0]}"></video></div>`;
+                }
+                dishCard.innerHTML = `
+                    ${mediaHTML}
+                    <div class="p-4 flex flex-col flex-grow">
+                        <h3 class="text-xl font-bold mb-2">${dish.title}</h3>
+                        <p class="text-gray-600 mb-4 flex-grow">${dish.description}</p>
+                        <div class="mb-4">
+                            <h4 class="font-semibold">Ingredients:</h4>
+                            <ul class="list-disc list-inside text-sm text-gray-600">
+                                ${dish.ingredients.map(ing => `<li><strong>${ing.name}:</strong> ${ing.quantity}</li>`).join('')}
+                            </ul>
+                        </div>
+                        <div class="mb-4">
+                            ${dish.tags.map(tag => `<span class="inline-block bg-blue-100 text-blue-800 text-xs font-semibold mr-2 px-2.5 py-0.5 rounded-full">${tag}</span>`).join('')}
+                        </div>
+                        <div class="flex items-center justify-between mt-auto pt-4 border-t">
+                            <div class="flex space-x-4">
+                                <button onclick="handleApprove('${dish._id}')" class="flex items-center space-x-1 text-green-600 hover:text-green-800">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.085a2 2 0 00-1.736.97l-2.714 4.223a2 2 0 01-1.39 1.03l-2.26.453a2 2 0 00-1.636 2.401l.409 2.048a2 2 0 001.973 1.615h4.017l1.965-4.425A2 2 0 0112.263 10z" /></svg>
+                                    <span>${dish.approves}</span>
+                                </button>
+                                <button onclick="handleDisapprove('${dish._id}')" class="flex items-center space-x-1 text-red-600 hover:text-red-800">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14H5.236a2 2 0 01-1.789-2.894l3.5-7A2 2 0 018.738 3h4.017c.163 0 .326.02.485.06L17 4m-7 10v5a2 2 0 002 2h.085a2 2 0 001.736-.97l2.714-4.223a2 2 0 011.39-1.03l2.26-.453a2 2 0 001.636-2.401l-.409-2.048a2 2 0 00-1.973-1.615h-4.017l-1.965 4.425A2 2 0 0111.737 14z" /></svg>
+                                    <span>${dish.disapproves}</span>
+                                </button>
+                            </div>
+                            <button onclick="handleDelete('${dish._id}')" class="text-gray-400 hover:text-red-500">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                            </button>
+                        </div>
+                    </div>`;
+                dishFeed.appendChild(dishCard);
+            });
+        };
+
+        const fetchDishes = async () => {
+            try {
+                const response = await fetch(`${API_URL}/api/dishes`);
+                if (!response.ok) throw new Error('Network response was not ok');
+                const { data } = await response.json();
+                renderDishes(data);
+            } catch (error) {
+                console.error('Error fetching dishes:', error);
+                dishFeed.innerHTML = `<p class="text-red-500 col-span-full text-center">Failed to load dishes. Make sure the backend server is running.</p>`;
+            }
+        };
+
+        createDishForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            formErrorDiv.classList.add('hidden');
+            const formData = new FormData();
+            const ingredientsText = document.getElementById('ingredients').value;
+            const ingredients = ingredientsText.split(',').map(item => {
+                const [name, quantity] = item.split(':');
+                return name && quantity ? { name: name.trim(), quantity: quantity.trim() } : null;
+            }).filter(Boolean);
+            const tagsText = document.getElementById('tags').value;
+            const tags = tagsText.split(',').map(tag => tag.trim());
+            formData.append('title', document.getElementById('title').value);
+            formData.append('description', document.getElementById('description').value);
+            formData.append('tags', JSON.stringify(tags));
+            formData.append('ingredients', JSON.stringify(ingredients));
+            const photosInput = document.getElementById('photos');
+            for (let i = 0; i < photosInput.files.length; i++) {
+                formData.append('photos', photosInput.files[i]);
+            }
+            const videosInput = document.getElementById('videos');
+            for (let i = 0; i < videosInput.files.length; i++) {
+                formData.append('videos', videosInput.files[i]);
+            }
+            try {
+                const response = await fetch(`${API_URL}/api/dishes`, {
+                    method: 'POST',
+                    body: formData,
+                });
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Failed to create dish');
+                }
+                createDishForm.reset();
+                createDishForm.closest('details').removeAttribute('open');
+                fetchDishes();
+            } catch (error) {
+                console.error('Error creating dish:', error);
+                formErrorDiv.textContent = `Error: ${error.message}`;
+                formErrorDiv.classList.remove('hidden');
+            }
+        });
+
+        const modal = document.getElementById('confirmation-modal');
+        const modalConfirmBtn = document.getElementById('modal-confirm-btn');
+        const modalCancelBtn = document.getElementById('modal-cancel-btn');
+        let deletionId = null;
+
+        const showModal = (id) => {
+            deletionId = id;
+            modal.classList.remove('hidden');
+        };
+        const hideModal = () => {
+            deletionId = null;
+            modal.classList.add('hidden');
+        };
+        modalConfirmBtn.addEventListener('click', async () => {
+            if (deletionId) {
+                try {
+                    await fetch(`${API_URL}/api/dishes/${deletionId}`, { method: 'DELETE' });
+                    fetchDishes();
+                } catch (error) { console.error('Error deleting dish:', error); }
+                finally { hideModal(); }
+            }
+        });
+        modalCancelBtn.addEventListener('click', hideModal);
+
+        const handleDelete = (id) => showModal(id);
+
+        const handleApprove = async (id) => {
+            try {
+                await fetch(`${API_URL}/api/dishes/${id}/approve`, { method: 'PUT' });
+                fetchDishes();
+            } catch (error) { console.error('Error approving dish:', error); }
+        };
+
+        const handleDisapprove = async (id) => {
+            try {
+                await fetch(`${API_URL}/api/dishes/${id}/disapprove`, { method: 'PUT' });
+                fetchDishes();
+            } catch (error) { console.error('Error disapproving dish:', error); }
+        };
+
+        document.addEventListener('DOMContentLoaded', fetchDishes);
+    </script>
+
+</body>
+</html>
